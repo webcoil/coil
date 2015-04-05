@@ -1,27 +1,49 @@
-# coil
-Web application interface for Common Lisp.
+# Coil
+`Coil` is a simple HTTP abstraction for Common Lisp.
 
-Inspired by WSGI, Rack, Plack, Ring, WAI, Plug and other interface specifications.
+Inspired by Pump, Ring, WAI, Plug and other interface specifications.
 
-## Application
+## Summary
+Your `app` is just a function that takes a`environment` - a property list with request information and returns a `response` - a property list of three keys `status`, `headers` and `body`. Additional capabilities could be added to app using `middlewares`.
 
-A `coil` application is a function, that takes single argument `environment` and returns a list of `status`, `headers` and `body`.
+## Specification 
 
-```lisp
-(lambda (environment)
-  `(200 (:content-type "text/plain") "Hello, World"))
-```
 ### environment
-
-`environment` is a property list of CGI-like headers such as `REQUEST_METHOD`, `SCRIPT_NAME`, `PATH_INFO`, `QUERY_STRING`, `SERVER_NAME`, `SERVER_PORT`, `HTTP_ Variables` etc. In addition, environment may also contain `coil` specific headers prefixed with `coil-`.
+`environment` is a property list representing web request. In addition, environment may also contain `coil` specific headers prefixed with `coil-`.
+```lisp
+(:server-port "80"
+ :server-name "localhost"
+ :headers ( :host "localhost:8000"
+            :connection "keep-alive"))
+```
 
 ### response
+`response` is a property list with `status`, `headers` and `body`. 
 
-#### status
-Is one of the http status codes, such as 200, 404, 500, 303 etc.
+Value of `status` is one of the http status codes, such as 200, 404, 500, 303 etc. 
 
-#### headers
-Is a property list, with keys and values as string, except for multiple header values, where the value is a list of strings. Applications can send `coil-` prefixed directive headers to web servers, which should not be sent to the client.
+`headers` is a property list, with keys and values as string, except for multiple header values, where the value is a list of strings. Applications can send `coil-` prefixed directive headers to web servers, which should not be sent to the client.
 
-#### body
-Should be string, file, list or anything that can be represented by a string.
+`body` should be string, file, list or anything that can be represented by a string.
+
+ ```lisp
+ (:status 200
+  :headers (:content-type "text/plain")
+  :body "Hello")
+ ```
+### app
+`app` is a function that takes `environment` and returns a `response`.
+```lisp
+(lambda (environment)
+  `(:status 200 
+    :headers (:content-type "text/plain") 
+    :body "Hello, World"))
+```
+### middleware
+`middleware` is a higher order function that adds additional capabilities to the `app`.
+```lisp
+(lambda (app)
+  (lambda (environment)
+    (format t "Logged")
+    (app environment)))
+```
